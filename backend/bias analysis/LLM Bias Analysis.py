@@ -1,15 +1,15 @@
 import requests
 import json
-from dotenv import load_dotenv
 import os
+from together import Together
+from dotenv import load_dotenv
 
 # Load variables from .env file
 load_dotenv()
 
 # Access environment variables
 debug = os.getenv('DEBUG')
-api_key = os.getenv('FIREWORKS_AI_API_KEY')
-print("api_key:",api_key)
+api_key = os.getenv('TOGETHER_AI_API_KEY')
 
 # Replace with your actual article content
 article_text = """
@@ -26,37 +26,15 @@ Article:
 \"\"\"
 """
 
+client = Together(api_key=api_key)
 
-url = "https://api.fireworks.ai/inference/v1/chat/completions"
-payload = {
-  "model": "accounts/fireworks/models/mixtral-8x22b-instruct",
-  "max_tokens": 2048,
-  "top_p": 1,
-  "top_k": 40,
-  "presence_penalty": 0,
-  "frequency_penalty": 0,
-  "temperature": 0.6,
-  "messages": [
-    {
-      "role": "user",
-      "content": "Hello, how are you?"
-    }
-  ]
-}
-headers = {
-  "Accept": "application/json",
-  "Content-Type": "application/json",
-  "Authorization": f"Bearer {api_key}"
-}
-response = requests.post(url, headers=headers, data=json.dumps(payload))
-
-# Check for errors
-if response.status_code != 200:
-    print("Error:", response.status_code, response.text)
-else:
-    # Parse response JSON
-    result = response.json()
-    
-    # Extract and print the model's reply
-    reply = result['choices'][0]['message']['content']
-    print("reply:",reply)
+response = client.chat.completions.create(
+    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+    messages=[
+      {
+        "role": "user",
+        "content": "What are some fun things to do in New York?"
+      }
+    ]
+)
+print(response.choices[0].message.content)
