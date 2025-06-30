@@ -5,6 +5,6 @@ article = News(url)
 
 print("Title:", article.title)
 print("Subtitle:", article.subtitle)
-print("Content:", article.content[:300] + "...")  # show first 300 chars
+print("Content:", article.content)  # show first 300 chars
 
 
