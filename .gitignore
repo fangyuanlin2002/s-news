@@ -7,16 +7,19 @@ dist/
 __pycache__/
 *.py[cod]
 .venv/
-.env
 
+# Environment variables+API keys
+.env
+backend/serverless-poc.yml
+backend/.env
 ben_playground/.env-cmdrc
+ben_playground/amplify.yml
 
 background/.env
 
 backend/.serverless/
 backend/.requirements.zip
 backend/foursides-poc.zip
-backend/serverless-poc.yml
 .next/
 
 # IDEs
