@@ -16,6 +16,7 @@ background/.env
 backend/.serverless/
 backend/.requirements.zip
 backend/foursides-poc.zip
+backend/serverless-poc.yml
 .next/
 
 # IDEs
