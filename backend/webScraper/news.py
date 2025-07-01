@@ -6,6 +6,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
 import undetected_chromedriver 
+# from translation import translate_text
+from simplifiedChineseToTraditionalChinese import simplifiedChineseToTraditionalChinese
+
+# Constants
+WAITING_TIME_FOR_JS_TO_FETCH_DATA=0
 
 
 class News(ABC):
@@ -51,6 +56,7 @@ class News(ABC):
         else:
             self.content = "No content found"
 
+# HK News Media
 class MingPaoNews(News):
     """Uses the default parser; override only if needed."""
     pass
@@ -60,6 +66,75 @@ class SingTaoDaily(News):
 
 class SCMP(News):
     pass
+
+class ChineseNewYorkTimes (News):
+    def _fetch_and_parse(self):
+        self._parse_article()
+
+    def _parse_article(self):
+        # 使用非 headless 模式（可視化）
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1280,800")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+        driver = webdriver.Chrome(options=options)
+
+        # 加上防偵測腳本
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+                });
+            """
+        })
+        driver.execute_script("""
+            let modals = document.querySelectorAll('.popup, .modal, .ad, .overlay, .vjs-modal');
+            modals.forEach(el => el.remove());
+        """)
+
+        # 建議測試短網址，避免過長導致連線問題
+        print("🔗 嘗試連線至：", self.url)
+
+        try:
+            driver.get(self.url)
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+
+            self.title = soup.find("div",class_="article-header").find("h1").get_text()
+            self.content = soup.find("section",class_="article-body")
+            print("self.content:",self.content)
+
+            if self.content:
+                self.content = "\n".join(p.get_text(strip=True) for p in  self.content)
+                print("📄 Content Preview:\n",  self.content, "...")
+            else:
+                print("⚠️ 找不到文章內容")
+        except Exception as e:
+            print("❌ 錯誤：", e)
+
+        driver.quit()
+
+class DeutscheWelle (News):
+    def _parse_article(self, soup):
+        # Extract title
+        title = soup.find("h1").get_text()
+        self.title=simplifiedChineseToTraditionalChinese(title)
+
+        # Extract content
+        content_div = soup.find("div", class_="c17j8gzx rc0m0op r1ebneao s198y7xq rich-text li5mn0y r1r94ulj wngcpkw blt0baw")
+        if content_div:
+            paragraphs=content_div.find_all("p")
+            self.content = simplifiedChineseToTraditionalChinese("\n".join(p.get_text(strip=True) for p in paragraphs))
+        else:
+            self.content = "No content found"
 
 class HKFreePress(News):
     # Extract title
@@ -167,10 +242,36 @@ class NowTV(News):
 
         # Extract content
         content_div = soup.find("div",class_="newsLeading")
-        print("content_div:",content_div)
         if content_div:
             paragraphs = content_div.find_all("p")
             self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class ChineseBBC(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h1").get_text()
+
+        # Extract content
+        content_div = soup.find("main")
+        if content_div:
+            paragraphs=content_div.find_all("p",dir="ltr")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class VOC(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title = soup.find("h1").get_text()
+        self.title=simplifiedChineseToTraditionalChinese(title)
+
+        # Extract content
+        content_div = soup.find("div", id="article-content")
+        if content_div:
+            paragraphs=content_div.find_all("p")
+            self.content = simplifiedChineseToTraditionalChinese("\n".join(p.get_text(strip=True) for p in paragraphs))
         else:
             self.content = "No content found"
 
@@ -255,7 +356,7 @@ class OrangeNews(News):
 
         try:
             driver.get(self.url)
-            time.sleep(10)  # 等待 JS 載入
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
 
             html = driver.page_source
             soup = BeautifulSoup(html, "html.parser")
@@ -376,7 +477,7 @@ class TheWitness(News):
 
         try:
             driver.get(self.url)
-            time.sleep(10)  # 等待 JS 載入
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
 
             html = driver.page_source
             soup = BeautifulSoup(html, "html.parser")
@@ -435,7 +536,7 @@ class InMediaHK(News):
 
         try:
             driver.get(self.url)
-            time.sleep(10)  # 等待 JS 載入
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
 
             html = driver.page_source
             soup = BeautifulSoup(html, "html.parser")
@@ -457,14 +558,55 @@ class InMediaHK(News):
             print("❌ 錯誤：", e)
 
         driver.quit()
-# If we use Selenium
+
+# China News Media
+class PeopleDaily(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("div",class_="col col-1 fl").find("h1").get_text()
+
+        # Extract content
+        content_div = soup.find("div",class_="rm_txt_con cf")
+
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
 
 
-# class News:
-    # def __init__(self, url):
-    #     self.url = url
-    #     self.title = None
-    #     self.subtitle = None
-    #     self.content = None
+class XinhuaNewsAgency(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h1").get_text()
 
-    #     self._parse_article()
+        # Extract content
+        content_div = soup.find("span",id="detailContent")
+
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class GlobalTimes(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("div",class_="article_title").get_text()
+
+        # Extract content
+        self.content = soup.find("div",class_="article_right").get_text()
+
+        # if content_div:
+        #     paragraphs = content_div.find_all("p")
+        #     self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        # else:
+        #     self.content = "No content found"
+
+class CCTV(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("div",class_="article_title").get_text()
+
+        # Extract content
+        self.content = soup.find("div",class_="article_right").get_text()
