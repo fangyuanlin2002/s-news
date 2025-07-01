@@ -1,0 +1,19 @@
+version: 1
+frontend:
+    phases:
+        preBuild:
+            commands:
+                - yarn
+        build:
+            commands:
+                - yarn build:prod
+    artifacts:
+        baseDirectory: dist
+        files:
+            - "**/*"
+    cache:
+        paths:
+            - node_modules/**/*
+env:
+    variables:
+        VITE_BACKEND_URL: "https://38jgnhg6lc.execute-api.ap-southeast-1.amazonaws.com/uat"
