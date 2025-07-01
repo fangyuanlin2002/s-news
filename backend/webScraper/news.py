@@ -610,3 +610,379 @@ class CCTV(News):
 
         # Extract content
         self.content = soup.find("div",class_="article_right").get_text()
+
+
+# Taiwanese News
+class UnitedDailyNews(News):
+    pass
+
+class LibertyTimesNet(News):
+     def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        paragraphs = soup.find("div",class_="text boxTitle boxText").find_all("p")
+        self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+
+class ChinaTimes(News):
+    def _fetch_and_parse(self):
+        self._parse_article()
+
+    def _parse_article(self):
+        # 使用非 headless 模式（可視化）
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1280,800")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+        driver = webdriver.Chrome(options=options)
+
+        # 加上防偵測腳本
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+                });
+            """
+        })
+        driver.execute_script("""
+            let modals = document.querySelectorAll('.popup, .modal, .ad, .overlay, .vjs-modal');
+            modals.forEach(el => el.remove());
+        """)
+
+        # 建議測試短網址，避免過長導致連線問題
+        print("🔗 嘗試連線至：", self.url)
+
+        try:
+            driver.get(self.url)
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+
+            self.title = soup.find("h1", class_="article-title").get_text()
+            self.content = soup.find_all("p")
+            self.content="\n".join(p.get_text(strip=True) for p in  self.content)
+
+        except Exception as e:
+            print("❌ 錯誤：", e)
+
+        driver.quit()
+
+class CNA(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h1").get_text()
+
+        # Extract content
+        paragraphs = soup.find("div",class_="paragraph").find_all("p")
+        self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+
+class TaiwanEconomicTimes(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h1").get_text()
+
+        # Extract content
+        paragraphs = soup.find("section",class_="article-body__editor").find_all("p")
+        self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+
+class PTSNews(News):
+    pass
+
+class CTEE(News):
+    def _fetch_and_parse(self):
+        self._parse_article()
+
+    def _parse_article(self):
+        # 使用非 headless 模式（可視化）
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1280,800")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+        driver = webdriver.Chrome(options=options)
+
+        # 加上防偵測腳本
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+                });
+            """
+        })
+        driver.execute_script("""
+            let modals = document.querySelectorAll('.popup, .modal, .ad, .overlay, .vjs-modal');
+            modals.forEach(el => el.remove());
+        """)
+
+        # 建議測試短網址，避免過長導致連線問題
+        print("🔗 嘗試連線至：", self.url)
+
+        try:
+            driver.get(self.url)
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+
+            self.title = soup.find("h1").get_text()
+            self.content = soup.find("article").find_all("p")
+            self.content="\n".join(p.get_text(strip=True) for p in  self.content)
+
+        except Exception as e:
+            print("❌ 錯誤：", e)
+
+        driver.quit()
+
+class MyPeopleVol(News):
+    pass
+
+class TaiwanTimes(News):
+    def _fetch_and_parse(self):
+        self._parse_article()
+
+    def _parse_article(self):
+        # 使用非 headless 模式（可視化）
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1280,800")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+        driver = webdriver.Chrome(options=options)
+
+        # 加上防偵測腳本
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+                });
+            """
+        })
+        driver.execute_script("""
+            let modals = document.querySelectorAll('.popup, .modal, .ad, .overlay, .vjs-modal');
+            modals.forEach(el => el.remove());
+        """)
+
+        # 建議測試短網址，避免過長導致連線問題
+        print("🔗 嘗試連線至：", self.url)
+
+        try:
+            driver.get(self.url)
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+
+            title_tag = soup.find("meta", property="og:title")
+            self.title = title_tag["content"].strip() if title_tag else "No title found"
+            content_div = soup.find("div", class_="detail-text logo-size main-text-color margin-bottom")
+            if content_div:
+                # Get text with line breaks preserved
+                texts = [line.strip() for line in content_div.stripped_strings]
+                self.content = "\n".join(texts)
+            else:
+                self.content = "No content found"
+
+        except Exception as e:
+            print("❌ 錯誤：", e)
+
+        driver.quit()
+
+class ChinaDailyNews(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        paragraphs = soup.find("div",class_="elementor-element elementor-element-b93c196 elementor-widget elementor-widget-theme-post-content")
+        self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+
+class SETN(News):
+    pass
+
+class NextAppleNews(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        paragraphs = soup.find("div",class_="post-content").find_all("p", recursive=False)
+        self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+
+class MirrorMedia(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        paragraphs = soup.find("section", class_="article-content__Wrapper-sc-a27b9208-0 hWzglx").find_all("span")
+        seen = set()
+        unique_paragraphs = []
+        for span in paragraphs:
+            text = span.get_text(strip=True)
+            if text not in seen:
+                seen.add(text)
+                unique_paragraphs.append(text)
+        self.content = "\n".join(unique_paragraphs)
+
+class NowNews(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        content_div = soup.find("div", id="articleContent")
+        if content_div:
+            outer_texts = [
+                str(item).strip()
+                for item in content_div.contents
+                if isinstance(item, str)
+            ]
+            self.content = "\n".join(t for t in outer_texts if t)
+        else:
+            self.content = "No content found"
+
+class StormMedia(News):
+    pass
+
+class TVBS(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+         # Extract content
+        content_div = soup.find("div", class_="article_content")
+        if content_div:
+            # Remove decorative spans/links
+            for span in content_div.find_all("strong"):
+                span.decompose()
+
+            # Remove centered divs used for styling
+            for div in content_div.find_all("div", align=True):
+                div.unwrap()
+
+            # Remove the unwanted promotional block
+            promo_div = content_div.find("div", class_="widely_declared")
+            print("promo_div:",promo_div)
+            if promo_div:
+                promo_div.decompose()
+
+            self.content = content_div.get_text(separator="\n", strip=True)
+        else:
+            self.content = "No content found"
+
+class EBCNews(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        content_div = soup.find("div", class_="article_content")
+        # Get rid of ads
+        for promo in content_div.find_all("div",class_="inline_box"):
+            promo.decompose()
+        for promo in content_div.find_all("a"):
+            promo.decompose()
+        paragraphs=content_div.find_all("p")
+        self.content = "\n".join(
+            p.get_text(strip=True)
+            for p in paragraphs
+            if p.get_text(strip=True)  # 過濾空段落
+        )
+
+class ETtoday(News):
+    pass
+
+class NewTalk(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        paragraphs = soup.find("div",class_="articleBody clearfix").find_all("p")
+        self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+
+class FTV(News):
+    def _fetch_and_parse(self):
+        self._parse_article()
+
+    def _parse_article(self):
+        # 使用非 headless 模式（可視化）
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1280,800")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+        driver = webdriver.Chrome(options=options)
+
+        # 加上防偵測腳本
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+                });
+            """
+        })
+        driver.execute_script("""
+            let modals = document.querySelectorAll('.popup, .modal, .ad, .overlay, .vjs-modal');
+            modals.forEach(el => el.remove());
+        """)
+
+        # 建議測試短網址，避免過長導致連線問題
+        print("🔗 嘗試連線至：", self.url)
+
+        try:
+            driver.get(self.url)
+            time.sleep(WAITING_TIME_FOR_JS_TO_FETCH_DATA)  # 等待 JS 載入
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+
+            title_tag = soup.find("meta", property="og:title")
+            self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+            content_div = soup.find("div", id="newscontent")
+            print("content_div:",content_div)
+            for promo in content_div.find_all("strong"):
+                promo.decompose()
+            if content_div:
+                # Get text with line breaks preserved
+                texts = [line.strip() for line in content_div.stripped_strings]
+                self.content = "\n".join(texts)
+            else:
+                self.content = "No content found"
+
+        except Exception as e:
+            print("❌ 錯誤：", e)
+
+        driver.quit()
