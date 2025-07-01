@@ -6,7 +6,7 @@ frontend:
                 - yarn
         build:
             commands:
-                - yarn build:prod
+                - yarn build:poc
     artifacts:
         baseDirectory: dist
         files:
@@ -16,4 +16,4 @@ frontend:
             - node_modules/**/*
 env:
     variables:
-        VITE_BACKEND_URL: "https://38jgnhg6lc.execute-api.ap-southeast-1.amazonaws.com/uat"
+        NEXT_PUBLIC_BACKEND_URL: "https://46upjedrtf.execute-api.ap-southeast-1.amazonaws.com/poc"

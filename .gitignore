@@ -9,6 +9,13 @@ __pycache__/
 .venv/
 .env
 
+ben_playground/.env-cmdrc
+
+background/.env
+
+backend/.serverless/
+backend/.requirements.zip
+backend/foursides-poc.zip
 .next/
 
 # IDEs

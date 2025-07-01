@@ -6,6 +6,7 @@
     "scripts": {
         "start:dev:ben": "env-cmd -f .env-cmdrc -e default,dev_ben next dev",
         "start:dev:frank": "env-cmd -f .env-cmdrc -e default,dev_frank next dev",
+        "start:poc": "env-cmd -f .env-cmdrc -e default,poc next dev",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],

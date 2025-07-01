@@ -1,0 +1,14 @@
+import React from "react";
+
+export default ({ text }: { text: string }) => {
+    return (
+        <div style={{ fontSize: 20, fontWeight: 400 }}>
+            {text.split("\n").map((line, index) => (
+                <React.Fragment key={line + index}>
+                    {line}
+                    <br />
+                </React.Fragment>
+            ))}
+        </div>
+    );
+};
