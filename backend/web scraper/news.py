@@ -58,6 +58,24 @@ class MingPaoNews(News):
 class SingTaoDaily(News):
     pass
 
+class SCMP(News):
+    pass
+
+class HKFreePress(News):
+    # Extract title
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+        # Extract content
+        content_div = soup.find("div",class_="entry-content")
+        print("content_div:",content_div)
+        if content_div:
+            paragraphs = content_div.find_all("p",recursive=False)
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
 class WenWeiPo(News):
     def _parse_article(self, soup):
     # Extract title
@@ -113,6 +131,150 @@ class InitiumMedia(News):
 
 class YahooNews(News):
     pass
+
+class HKCD(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h2").get_text()
+
+        # Extract content
+        content_div = soup.find("div",class_="newsDetail")
+
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class TheEpochTimes(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h2").get_text()
+
+        # Extract content
+        content_div = soup.find("div",class_="post_content")
+
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class NowTV(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h1").get_text()
+
+        # Extract content
+        content_div = soup.find("div",class_="newsLeading")
+        print("content_div:",content_div)
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class HKCourtNews(News):
+    def _parse_article(self, soup):
+        # Extract title
+        self.title = soup.find("h1").get_text()
+
+        # Extract content
+        content_div = soup.find("div",class_="elementor-element elementor-element-cd4b5e9 elementor-widget elementor-widget-theme-post-content")
+        print("content_div:",content_div)
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class ICable(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("meta", property="og:title")
+        self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract content
+        content_div = soup.find("article")
+
+        if content_div:
+            paragraphs = content_div.find_all("p",recursive=False)
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+class HKGovernmentNews(News):
+    def _parse_article(self, soup):
+        # Extract title
+        title_tag = soup.find("h1", class_="tkp_con_title")
+        self.title = title_tag.get_text(strip=True) if title_tag else "No title"
+
+        # Extract content
+        content_div = soup.find("div",class_="newsdetail-content")
+        if content_div:
+            paragraphs = content_div.find_all("p")
+            self.content = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        else:
+            self.content = "No content found"
+
+
+# It uses Vue to fetch data with JavaScript
+class OrangeNews(News):
+    def _fetch_and_parse(self):
+        self._parse_article()
+
+    def _parse_article(self):
+        # 使用非 headless 模式（可視化）
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1280,800")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+
+        driver = webdriver.Chrome(options=options)
+
+        # 加上防偵測腳本
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+                });
+            """
+        })
+        driver.execute_script("""
+            let modals = document.querySelectorAll('.popup, .modal, .ad, .overlay, .vjs-modal');
+            modals.forEach(el => el.remove());
+        """)
+
+        # 建議測試短網址，避免過長導致連線問題
+        print("🔗 嘗試連線至：", self.url)
+
+        try:
+            driver.get(self.url)
+            time.sleep(10)  # 等待 JS 載入
+
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+
+            self.title = soup.find("h1").getText()
+            self.content = soup.find("article").find_all("p")
+
+            print("📰 Title:", self.title if self.title else "無標題")
+            print("self.content:",self.content)
+
+            if self.content:
+                self.content = "\n".join(p.get_text(strip=True) for p in  self.content)
+                print("📄 Content Preview:\n",  self.content, "...")
+            else:
+                print("⚠️ 找不到文章內容")
+        except Exception as e:
+            print("❌ 錯誤：", e)
+
+        driver.quit()
 
 class TheStandard(News):
     def _parse_article(self, soup):
