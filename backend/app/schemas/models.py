@@ -35,8 +35,8 @@ class Article(BaseModel):
     bias_score: float
 
 class NewsRequest(BaseModel):
-    media_name: str
-    news_url: HttpUrl
+    url: HttpUrl
+    media: str
 
 class NewsResponse(BaseModel):
     title: str

@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 import undetected_chromedriver 
 # from translation import translate_text
-from simplifiedChineseToTraditionalChinese import simplifiedChineseToTraditionalChinese
+from webScraper.simplifiedChineseToTraditionalChinese import simplifiedChineseToTraditionalChinese
 
 # Constants
 WAITING_TIME_FOR_JS_TO_FETCH_DATA=0

@@ -4,19 +4,21 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start:dev": "next dev",
+        "start:dev:ben": "env-cmd -f .env-cmdrc -e default,dev_ben next dev",
+        "start:dev:frank": "env-cmd -f .env-cmdrc -e default,dev_frank next dev",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "devDependencies": {
+        "env-cmd": "^10.1.0",
         "typescript": "^5.8.3"
     },
     "dependencies": {
-        "@mui/material": "^7.2.0",
         "@emotion/react": "^11.11.1",
         "@emotion/styled": "^11.11.0",
+        "@mui/material": "^7.2.0",
         "@types/node": "^24.0.8",
         "@types/react": "^19.1.8",
         "next": "^15.3.4",

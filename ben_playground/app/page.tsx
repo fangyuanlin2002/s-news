@@ -4,21 +4,24 @@ import { TextField, Button, Autocomplete, Container } from "@mui/material";
 import Title from "./components/Title";
 import newsSources from "../dto/constant";
 
+const NEXT_PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 export default function NewsScraper() {
     const newsUrlRef = useRef<HTMLInputElement>(null);
     const [selectedMedia, setSelectedMedia] = useState<{ label: string } | null>(null);
+    const [data, setData] = useState<any>(null);
 
     const handleStartScraping = async () => {
         const newsUrl = newsUrlRef.current?.value;
-        const mediaName = selectedMedia;
+        const mediaName = selectedMedia?.label;
 
         if (!newsUrl || !mediaName) {
             alert("Please provide both the news URL and media name.");
             return;
         }
-
         try {
-            const response = await fetch("/api/scrape", {
+            console.log("BACKEND_URL:", NEXT_PUBLIC_BACKEND_URL);
+            const response = await fetch(`${NEXT_PUBLIC_BACKEND_URL}/web-scraping/parse-news`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
