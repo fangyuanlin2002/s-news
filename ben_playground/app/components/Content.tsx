@@ -1,5 +1,5 @@
 import React from "react";
-
+// testing
 export default ({ text }: { text: string }) => {
     return (
         <div style={{ fontSize: 20, fontWeight: 400 }}>
