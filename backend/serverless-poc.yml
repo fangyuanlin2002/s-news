@@ -26,7 +26,7 @@ provider:
     apiGateway:
         shouldStartNameWithService: true
     environment:
-        TOGETHER_AI_API_KEY: 252fc16d111c70fac38cdf9d4a4b658dbfab31802a758d5b6f88216a5e5285f9
+        TOGETHER_AI_API_KEY: abc
         FILE_STORAGE: /tmp/files
         PORT: 3000
 
