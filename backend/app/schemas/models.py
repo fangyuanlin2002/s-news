@@ -33,3 +33,11 @@ class Article(BaseModel):
     region: Region
     topics: List[Topic]
     bias_score: float
+
+class NewsRequest(BaseModel):
+    media_name: str
+    news_url: HttpUrl
+
+class NewsResponse(BaseModel):
+    title: str
+    content: str
