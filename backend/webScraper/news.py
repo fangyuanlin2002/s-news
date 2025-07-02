@@ -19,6 +19,9 @@ class News(ABC):
         self.title = None
         self.subtitle = None
         self.content = None
+        self.published_at=None
+        self.authors=[]
+        self.images=[]
         self._fetch_and_parse()
 
     def _fetch_and_parse(self):
@@ -44,6 +47,9 @@ class News(ABC):
         # Extract title
         title_tag = soup.find("meta", property="og:title")
         self.title = title_tag["content"].strip() if title_tag else "No title found"
+
+        # Extract published date
+        self.published_at=soup.find("div",class_="datePublished").get_text(strip=True) if soup.find("div",class_="datePublished") else "No date found"
 
         # Extract content
         content_div = soup.find("article")

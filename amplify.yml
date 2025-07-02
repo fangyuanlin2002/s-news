@@ -1,0 +1,21 @@
+version: 1
+applications:
+    - appRoot: ben_playground
+      frontend:
+          phases:
+              preBuild:
+                  commands:
+                      - yarn
+              build:
+                  commands:
+                      - yarn build:poc
+          artifacts:
+              baseDirectory: out
+              files:
+                  - "**/*"
+          cache:
+              paths:
+                  - node_modules/**/*
+      env:
+          variables:
+              NEXT_PUBLIC_BACKEND_URL: "https://46ujpedrtf.execute-api.ap-southeast-1.amazonaws.com/poc"

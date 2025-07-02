@@ -14,6 +14,8 @@ backend/serverless-poc.yml
 backend/.env
 ben_playground/.env-cmdrc
 ben_playground/amplify.yml
+ben_playground/.next/
+
 
 background/.env
 
