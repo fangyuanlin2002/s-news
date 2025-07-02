@@ -10,7 +10,7 @@ applications:
                   commands:
                       - yarn build:poc
           artifacts:
-              baseDirectory: out
+              baseDirectory: .next
               files:
                   - "**/*"
           cache:
