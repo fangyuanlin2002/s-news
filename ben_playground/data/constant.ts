@@ -1,5 +1,12 @@
 const newsSources = [
+    { label: "CTS" },
+    { label: "TSSDNews" },
+    { label: "CTWant" },
+    { label: "TaiwanNews" },
+    { label: "TTV" },
+    { label: "CTINews" },
     { label: "MingPaoNews" },
+    { label: "HongKongFreePress" },
     { label: "SingTaoDaily" },
     { label: "SCMP" },
     { label: "ChineseNewYorkTimes" },

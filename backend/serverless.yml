@@ -1,0 +1,66 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+# org: foursides
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+# app: foursides
+
+# Project name on the infrastructure created
+service: foursides-poc
+
+package:
+    exclude:
+        - __pycache__/**
+        - .pytest_cache/**
+        - .env
+        - .requirements.zip
+        - node_modules/**
+        - package.json
+        - package-lock.json
+        - .serverless/**
+
+plugins:
+    - serverless-python-requirements
+
+provider:
+    name: aws
+    runtime: python3.9
+    stage: poc
+    region: ap-southeast-1
+    timeout: 29
+    endpointType: REGIONAL
+    apiGateway:
+        shouldStartNameWithService: true
+    environment:
+        TOGETHER_AI_API_KEY: abc
+        FILE_STORAGE: /tmp/files
+        PORT: 3000
+
+functions:
+    api:
+        handler: server.handler
+        layers:
+            - { Ref: PythonLibsLambdaLayer }
+        events:
+            - http:
+                  path: /
+                  method: ANY
+                  cors: true
+            - http:
+                  path: /{proxy+}
+                  method: ANY
+                  cors: true
+layers:
+    pythonLibs:
+        path: layer
+        compatibleRuntimes:
+            - python3.9 # or python3.12 if using that runtime
+        name: ${self:service}-${self:provider.stage}-python-layer
+
+custom:
+    pythonRequirements:
+        fileName: requirements.txt
+        pythonBin: python3.12
+        zip: true
+        slim: false # Disable slim packaging
+        noDeploy: # Exclude problematic libraries
+            - boto3
+            - botocore

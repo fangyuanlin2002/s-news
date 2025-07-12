@@ -1,16 +1,20 @@
 "use client";
 import React, { useRef, useState } from "react";
-import { TextField, Button, Autocomplete, Container } from "@mui/material";
+import { TextField, Button, Autocomplete, Container, ImageList, ImageListItem } from "@mui/material";
 import Title from "./components/Title";
-import newsSources from "../dto/constant";
+import newsSources from "../data/constant";
 import Content from "./components/Content";
+import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
+import timeUtil from "../app/util/timeUtil";
+import ImageCarousel from "./components/ImageCarousel";
+import { Article } from "../data/dto";
 
 const NEXT_PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-export default function NewsScraper() {
+export default () => {
     const newsUrlRef = useRef<HTMLInputElement>(null);
     const [selectedMedia, setSelectedMedia] = useState<{ label: string } | null>(null);
-    const [data, setData] = useState<{ title: string; content: string } | undefined>(undefined);
+    const [data, setData] = useState<Article | undefined>(undefined);
 
     const handleStartScraping = async () => {
         const newsUrl = newsUrlRef.current?.value;
@@ -69,16 +73,33 @@ export default function NewsScraper() {
             </div>
             {data && (
                 <div style={{ marginTop: 30 }}>
-                    <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", gap: 50 }}>
-                        <Content text="Title:" />
-                        <Content text={data.title} />
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 100 }}>
+                        <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", gap: 30, marginTop: 20 }}>
+                            <Content text="Published Date:" />
+                            <Content text={timeUtil.timestampToChineseDate(data?.published_at) || "none"} />
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", gap: 30, marginTop: 20 }}>
+                            <Content text={data?.origin === "native" ? "Author(s):" : "Origin:"} />
+                            {data?.origin === "native" ? (
+                                <Content text={data?.authors && data?.authors.length > 0 ? data.authors.join(", ") : "Unknown author"} />
+                            ) : (
+                                <Content text={data?.origin} />
+                            )}
+                        </div>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", gap: 20, marginTop: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20 }}>
+                        {data.images && data.images.length > 0 && <ImageCarousel imageUrls={data.images} />}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", gap: 130, marginTop: 20 }}>
+                        <Content text="Title:" />
+                        <Content text={data?.title} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", gap: 100, marginTop: 20 }}>
                         <Content text="Content:" />
-                        <Content text={data.content} />
+                        <Content text={data?.content} />
                     </div>
                 </div>
             )}
         </Container>
     );
-}
+};
