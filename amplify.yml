@@ -18,4 +18,4 @@ applications:
                   - node_modules/**/*
       env:
           variables:
-              NEXT_PUBLIC_BACKEND_URL: "http://18.166.74.144:8000"
+              NEXT_PUBLIC_BACKEND_URL: "https://46ujpedrtf.execute-api.ap-southeast-1.amazonaws.com/poc"
