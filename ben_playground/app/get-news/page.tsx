@@ -142,6 +142,10 @@ export default () => {
                             <Content text="Content:" />
                             <Content text={article?.content} />
                         </div>
+                        <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", gap: 100, marginTop: 20 }}>
+                            <Content text="Content in English:" />
+                            <Content text={article?.content_en} />
+                        </div>
                     </div>
                 );
             })}
