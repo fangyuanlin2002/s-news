@@ -13,6 +13,7 @@ import { DatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 const NEXT_PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+console.log("NEXT_PUBLIC_BACKEND_URL:", NEXT_PUBLIC_BACKEND_URL);
 const origins = [{ label: "native" }, ...newsSources];
 export default () => {
     const [data, setData] = useState<Article[] | undefined>(undefined);

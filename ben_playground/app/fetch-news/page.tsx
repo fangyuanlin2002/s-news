@@ -17,7 +17,7 @@ export default () => {
         const mediaName = selectedMedia?.label;
         try {
             console.log("BACKEND_URL:", NEXT_PUBLIC_BACKEND_URL);
-            const response = await fetch(`${NEXT_PUBLIC_BACKEND_URL}/web-scraping/fetch-news/${mediaName}`, {
+            const response = await fetch(`${NEXT_PUBLIC_BACKEND_URL}/web-scraping/scrape-news/${mediaName}`, {
                 method: "post",
                 headers: {
                     "Content-Type": "application/json",
@@ -25,7 +25,7 @@ export default () => {
             });
 
             const result = await response.json();
-            setData(result);
+            alert(`success: ${result?.success}`);
             console.log("result:", result);
         } catch (error) {
             console.error("API Error:", error);
@@ -53,7 +53,7 @@ export default () => {
                 </div>
                 <div style={{ fontWeight: "bold" }}>News count: {data ? data.length : 0}</div>
             </div>
-            {data?.map((article, key) => {
+            {/* {data?.map((article, key) => {
                 return (
                     <div style={{ marginTop: 50 }} key={key}>
                         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20 }}>
@@ -86,7 +86,7 @@ export default () => {
                         </div>
                     </div>
                 );
-            })}
+            })} */}
         </Container>
     );
 };
