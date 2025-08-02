@@ -22,14 +22,14 @@ from keybert import KeyBERT
 # visualization
 import plotly.express as px
 
-# —— CONFIG —— 
-SAMPLE_SIZE = 200
+# —— CONFIG —— The most important the parameters
+SAMPLE_SIZE = 100
 BATCH_SIZE = 32
 EMBED_MODEL = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 TRANSLATE_MODEL = "Helsinki-NLP/opus-mt-zh-en"
 UMAP_KWARGS = dict(n_components=10, n_neighbors=15, min_dist=0.01)
 HDBSCAN_KWARGS = dict(
-    min_cluster_size=3,    # Small cluster sizes allowed
+    min_cluster_size=1,    # Small cluster sizes allowed
     min_samples=1,         # Higher sensitivity for density
     cluster_selection_epsilon=0.05 # Explicitly control distance for merging clusters
 )
@@ -69,8 +69,15 @@ print(f"✅ Reduced embeddings shape: {reduced_embeddings.shape}")
 
 # Clustering with HDBSCAN
 print("🧩 Clustering with HDBSCAN...")
-clusterer = hdbscan.HDBSCAN(**HDBSCAN_KWARGS)
+# clusterer = hdbscan.HDBSCAN(**HDBSCAN_KWARGS)
+clusterer = hdbscan.HDBSCAN(
+    min_cluster_size=2,                # must be ≥ 2
+    min_samples=1,                     # still allows noise points
+    cluster_selection_method='leaf',   # for fine‐grained clusters
+    cluster_selection_epsilon=0.0
+)
 labels = clusterer.fit_predict(reduced_embeddings)
+
 df["label"] = [str(label) for label in labels]
 print(f"✅ Number of clusters found: {len(set(labels)) - (1 if -1 in labels else 0)}")
 
