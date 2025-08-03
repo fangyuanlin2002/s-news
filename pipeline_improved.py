@@ -15,7 +15,7 @@ from datetime import timedelta
 SAMPLE_SIZE        = 100
 BATCH_SIZE         = 16
 EMBED_MODEL        = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-SIM_THRESH         = 0.6            # cosine similarity threshold
+SIM_THRESH         = 0.8            # cosine similarity threshold
 TIME_WINDOW_DAYS   = 3              # ± days for event window
 ENTITY_LABELS      = {"PERSON","ORG","GPE","LOC"}
 
@@ -72,6 +72,8 @@ doc_ents = []
 for doc in nlp.pipe(df["content_en"], batch_size= BATCH_SIZE, disable=["parser"]):
     ents = {ent.text for ent in doc.ents if ent.label_ in ENTITY_LABELS}
     doc_ents.append(ents)
+
+df["entities"] = [";".join(sorted(ents)) for ents in doc_ents]
 
 # —— BUILD SIMILARITY GRAPH ——
 print("🔗 Building event graph...")
@@ -130,3 +132,8 @@ fig = px.scatter(
 fig.show()
 
 print("✅ Done! Cluster IDs are in df['cluster_id'].")
+
+# —— EXPORT ——
+export_cols = ["id", "title", "cluster_id", "entities", "published_at"]
+df[export_cols].to_csv("news_clusters_with_entities.csv", index=False)
+print("✅ Exported clusters + entities to news_clusters_with_entities.csv")
