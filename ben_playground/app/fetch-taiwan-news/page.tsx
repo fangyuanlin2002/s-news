@@ -13,7 +13,7 @@ export default () => {
     const handleStartScraping = async () => {
         try {
             console.log("BACKEND_URL:", NEXT_PUBLIC_BACKEND_URL);
-            const response = await fetch(`${NEXT_PUBLIC_BACKEND_URL}/web-scraping/fetch-all-taiwanese-news`, {
+            const response = await fetch(`${NEXT_PUBLIC_BACKEND_URL}/web-scraping/scrape-all-taiwanese-news`, {
                 method: "post",
                 headers: {
                     "Content-Type": "application/json",
@@ -21,6 +21,7 @@ export default () => {
             });
 
             const result = await response.json();
+            alert(`success: ${result?.success}`);
             console.log("result:", result);
         } catch (error) {
             console.error("API Error:", error);

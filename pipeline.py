@@ -1,4 +1,6 @@
 # manage data
+import os
+from dotenv import load_dotenv
 import pandas as pd
 from urllib.parse import quote_plus
 from sqlalchemy import create_engine
@@ -36,15 +38,12 @@ HDBSCAN_KWARGS = dict(
 
 
 # Postgres creds
-USER = "postgres"
-PASSWORD = quote_plus("4b.3O_XD?C9")  # Encode special characters
-HOST = "18.162.51.182"
-PORT = 5432
-DBNAME = "mydb"
-DB_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
+load_dotenv()
+SYNC_DATABASE_URL=os.getenv("SYNC_DATABASE_URL")
+print(f"✅ Loaded environment variables")
 
 # Connect to database and load data
-engine = create_engine(DB_URL)
+engine = create_engine(SYNC_DATABASE_URL)
 query = f"""
     SELECT id, title, content_en 
     FROM news 

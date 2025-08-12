@@ -1,4 +1,6 @@
 # ===== IMPORTS =====
+import os
+from dotenv import load_dotenv
 import pandas as pd
 from urllib.parse import quote_plus
 from sqlalchemy import create_engine
@@ -10,15 +12,9 @@ import plotly.express as px
 
 # ===== CONFIGURATION =====
 # Database Configuration
-DB_CONFIG = {
-    "user": "postgres",
-    "password": quote_plus("4b.3O_XD?C9"),
-    "host": "18.162.51.182",
-    "port": 5432,
-    "dbname": "mydb"
-}
-DB_URL = f"postgresql+psycopg2://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
-
+load_dotenv()
+SYNC_DATABASE_URL=os.getenv("SYNC_DATABASE_URL")
+print(f"✅ Loaded environment variables")
 # Model Configuration
 MODEL_CONFIG = {
     "embed_model": "sentence-transformers/multi-qa-mpnet-base-dot-v1",
@@ -62,7 +58,7 @@ CLUSTERING_CONFIG = {
 
 # ===== DATA LOADING =====
 print("🔄 Loading data from database...")
-engine = create_engine(DB_URL)
+engine = create_engine(SYNC_DATABASE_URL)
 query = f"""
     SELECT id, title, content_en, published_at 
     FROM news 

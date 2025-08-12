@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+import os
 import pandas as pd
 import numpy as np
 from urllib.parse import quote_plus
@@ -10,6 +12,7 @@ import networkx as nx
 import umap
 import plotly.express as px
 from datetime import timedelta
+import uuid
 
 # —— CONFIGURATION —— 
 SAMPLE_SIZE        = 100
@@ -20,17 +23,13 @@ TIME_WINDOW_DAYS   = 3              # ± days for event window
 ENTITY_LABELS      = {"PERSON","ORG","GPE","LOC"}
 
 # Postgres credentials
-USER     = "postgres"
-PASSWORD = quote_plus("4b.3O_XD?C9")
-HOST     = "18.162.51.182"
-PORT     = 5432
-DBNAME   = "mydb"
-DB_URL   = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
-
+load_dotenv()
+SYNC_DATABASE_URL=os.getenv("SYNC_DATABASE_URL")
+print(f"✅ Loaded environment variables")
 # —— LOAD DATA ——
-engine = create_engine(DB_URL)
+engine = create_engine(SYNC_DATABASE_URL)
 query = f"""
-    SELECT id, title, content_en, published_at
+    SELECT id, title, content_en, published_at, url
     FROM news
     WHERE content_en IS NOT NULL
     ORDER BY published_at DESC NULLS LAST
@@ -102,19 +101,28 @@ for i in range(len(df)):
 # —— EXTRACT CLUSTERS ——
 print("🎯 Extracting clusters...")
 components = list(nx.connected_components(G))
-label_map = {}
-for cid, comp in enumerate(components):
+uuid_map = {}      # cluster_idx -> uuid
+label_map = {}     # article idx -> uuid
+vis_label_map = {} # article idx -> visual cluster id
+for cluster_idx, comp in enumerate(components):
+    cluster_uuid = str(uuid.uuid4())
+    uuid_map[cluster_idx] = cluster_uuid
     for idx in comp:
-        label_map[idx] = cid
+        label_map[idx] = cluster_uuid
+        vis_label_map[idx] = cluster_idx
 
 # Singletons for any node not in the graph (isolated or no edges)
-max_c = max(label_map.values(), default=-1)
+singleton_count = len(components)
 for idx in range(len(df)):
     if idx not in label_map:
-        max_c += 1
-        label_map[idx] = max_c
+        cluster_uuid = str(uuid.uuid4())
+        label_map[idx] = cluster_uuid
+        vis_label_map[idx] = singleton_count
+        singleton_count += 1
 
-df["cluster_id"] = df.index.map(label_map)
+# Store both internal (UUID) and visual (integer) cluster IDs
+df["cluster_id"] = df.index.map(label_map)         # UUID for internal use
+df["cluster_vis_id"] = df.index.map(vis_label_map) # Integer for visualization
 
 # —— VISUALIZE ——
 print("📊 Plotting clusters with UMAP...")
@@ -125,15 +133,37 @@ df["short_text"] = df["content_en"].str[:100] + "..."
 
 fig = px.scatter(
     df, x="x", y="y",
-    color=df["cluster_id"].astype(str),
-    hover_data=["title","short_text","published_at"],
+    color=df["cluster_vis_id"].astype(str),  # use visual ID for colors
+    hover_data=["cluster_id","title", "short_text", "published_at", "url"],
+    custom_data=["url"],
     title="Event-Based News Clustering"
 )
-fig.show()
+# Convert the figure to HTML
+plotly_html = fig.to_html(full_html=True, include_plotlyjs='cdn')
+
+# Inject JavaScript to handle dot clicks
+plotly_html = plotly_html.replace(
+    '</body>',
+    """
+    <script>
+    document.querySelectorAll(".plotly-graph-div").forEach(function(gd) {
+        gd.on('plotly_click', function(data) {
+            const url = data.points[0].customdata[0];
+            window.open(url, '_blank');  // Use '_self' to open in same tab
+        });
+    });
+    </script>
+    </body>
+    """
+)
+
+# Save the modified HTML to file
+with open("news_clusters.html", "w", encoding="utf-8") as f:
+    f.write(plotly_html)
 
 print("✅ Done! Cluster IDs are in df['cluster_id'].")
 
 # —— EXPORT ——
-export_cols = ["id", "title", "cluster_id", "entities", "published_at"]
+export_cols = ["id", "title", "cluster_id", "cluster_vis_id", "entities", "published_at"]
 df[export_cols].to_csv("news_clusters_with_entities.csv", index=False)
 print("✅ Exported clusters + entities to news_clusters_with_entities.csv")
